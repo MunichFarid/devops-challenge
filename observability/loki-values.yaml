@@ -1,0 +1,26 @@
+# Loki + Promtail for kind (namespace: monitoring)
+
+loki:
+  enabled: true
+  isDefault: false
+  service:
+    type: ClusterIP
+    port: 3100
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClassName: standard
+
+promtail:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+  tolerations: []     # keep simple for kind
+  extraScrapeConfigs: []  # defaults are fine
+
+grafana:
+  enabled: false      # we already have Grafana from kube-prometheus-stack
+
+# Optional: keep default rules/alerts off for a lighter kind footprint
+fluent-bit:
+  enabled: false

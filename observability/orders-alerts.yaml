@@ -1,0 +1,47 @@
+# orders-alerts.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: orders-alerts
+  namespace: default
+  labels:
+    release: kps
+spec:
+  groups:
+  - name: orders.rules
+    interval: 15s
+    rules:
+    # 5xx error ratio > 5% over 5m
+    - alert: OrdersHigh5xxRate
+      expr: |
+        sum(rate(http_requests_total{service="orders",status_code=~"5.."}[5m]))
+        /
+        sum(rate(http_requests_total{service="orders"}[5m]))
+        > 0.05
+      for: 5m
+      labels: { severity: critical, service: orders }
+      annotations:
+        summary: High 5xx error rate
+        description: "5xx ratio > 5% for 5m. Current={{ $value | printf \"%.2f\" }}"
+
+    # p95 latency > 0.5s for 10m
+    - alert: OrdersHighLatencyP95
+      expr: |
+        histogram_quantile(
+          0.95,
+          sum by (le) (rate(http_request_duration_seconds_bucket{service="orders"}[5m]))
+        ) > 0.5
+      for: 10m
+      labels: { severity: warning, service: orders }
+      annotations:
+        summary: High p95 latency
+        description: "p95 > 500ms for 10m. Current={{ $value | printf \"%.3f\" }}s"
+
+    # DB connection errors (only if you emit this counter)
+    - alert: OrdersDbConnectionErrors
+      expr: rate(db_connection_errors_total{service="orders"}[5m]) > 0
+      for: 10m
+      labels: { severity: critical, service: orders }
+      annotations:
+        summary: DB connection errors
+        description: "db_connection_errors_total > 0 for 10m"

@@ -1,0 +1,84 @@
+# values-kind.yaml
+# Kind-specific values for kube-prometheus-stack
+# Cluster: kind-kind, ingress-nginx (class: nginx), HTTP, PVCs on StorageClass "standard"
+
+grafana:
+  admin:
+    # Secret created by your install script
+    existingSecret: kps-grafana-admin
+
+  service:
+    type: ClusterIP
+    port: 80
+
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    path: /
+    pathType: Prefix
+    hosts:
+      - grafana.localtest.me
+
+  # Use a pre-created PVC for deterministic startup
+  persistence:
+    enabled: true
+    existingClaim: kps-grafana
+    accessModes: [ReadWriteOnce]
+    size: 5Gi
+    storageClassName: standard
+
+  # Create the PVC via the chart before the Pod starts
+  extraObjects:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: kps-grafana
+      spec:
+        accessModes: [ReadWriteOnce]
+        storageClassName: standard
+        resources:
+          requests:
+            storage: 5Gi
+  sidecar:
+    datasources:
+      enabled: true
+      label: grafana_datasource
+      labelValue: "1"
+      searchNamespace: ALL
+
+
+prometheus:
+  service:
+    type: ClusterIP
+    port: 9090
+
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    path: /
+    pathType: Prefix
+    hosts:
+      - prometheus.localtest.me
+
+  prometheusSpec:
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: standard
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+
+alertmanager:
+  service:
+    type: ClusterIP
+  alertmanagerSpec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: standard
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 2Gi

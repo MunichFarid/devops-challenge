@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: orders-db-config
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "-10"
+    "helm.sh/hook-delete-policy": before-hook-creation
+  labels:
+    {{- include "orders.labels" . | nindent 4 }}
+data:
+  DB_HOST: {{ .Values.db.host | quote }}
+  DB_PORT: "{{ .Values.db.port }}"
+  DB_NAME: {{ .Values.db.name | quote }}

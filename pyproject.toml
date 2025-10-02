@@ -1,0 +1,7 @@
+[tool.flake8]
+max-line-length = 100
+exclude = [".venv", "__pycache__", "build", "dist"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]

@@ -1,0 +1,93 @@
+# Chart-wide settings
+nameOverride: ""
+fullnameOverride: "orders"
+
+image:
+  repository: ghcr.io/munichfarid/fastapi-test
+  tag: "amd64-latest"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []  # using kind-loaded image, no registry creds needed
+
+serviceAccount:
+  create: false
+
+podAnnotations: {}
+
+podSecurityContext: {}
+#  fsGroup: 1000
+
+securityContext: {}
+#  runAsNonRoot: true
+#  runAsUser: 1000
+#  runAsGroup: 1000
+#  readOnlyRootFilesystem: false  # SQLite needs write access
+
+service:
+  type: ClusterIP
+  port: 8000
+  annotations: {}
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations: {}
+  hosts:
+    - host: orders.localtest.me
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: orders-tls
+      hosts:
+        - orders.localtest.me
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+# Probes for FastAPI
+livenessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 3
+  successThreshold: 1
+
+readinessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 2
+  failureThreshold: 3
+  successThreshold: 1
+
+# Autoscaling off for now
+autoscaling:
+  enabled: false
+
+# Replica count
+replicaCount: 1
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Extra env if needed later
+env: []
+
+db:
+  host: "host.docker.internal"
+  port: 5432
+  name: "orders_db"
+  user: "orders_user"
+  password: ""  # set via Terraform (set_sensitive), do not commit real value
