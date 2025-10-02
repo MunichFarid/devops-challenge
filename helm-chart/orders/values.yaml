@@ -3,7 +3,7 @@ nameOverride: ""
 fullnameOverride: "orders"
 
 image:
-  repository: ghcr.io/munichfarid/fastapi-test
+  repository: ghcr.io/munichfarid/devops-challenge
   tag: "amd64-latest"
   pullPolicy: IfNotPresent
 
